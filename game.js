@@ -28,7 +28,7 @@ var controls = null;
 var keyboard = null;
 
 var obstacles = [];
-var bullets = [];
+var shots = [];
 
 var player_loaded = 0;
 var column_loaded;
@@ -60,17 +60,17 @@ function start(){
 
 function cloneObstacle(){
 
-    var newcolumn = column.clone();
+    var obstacleClone = column.clone();
 
     zPos = Math.floor(Math.random() * 200) - 100  
 
-    newcolumn.position.z = zPos;
-    newcolumn.position.x = -550;
-    newcolumn.position.y = 0;
-    newcolumn.bbox = new THREE.Box3()
-    newcolumn.bbox.setFromObject(newcolumn)
-    scene.add(newcolumn);
-    obstacles.push(newcolumn);
+    obstacleClone.position.z = zPos;
+    obstacleClone.position.x = -550;
+    obstacleClone.position.y = 0;
+    obstacleClone.bbox = new THREE.Box3()
+    obstacleClone.bbox.setFromObject(obstacleClone)
+    scene.add(obstacleClone);
+    obstacles.push(obstacleClone);
 
 }
 
@@ -101,9 +101,8 @@ function animate() {
 
     seconds = (now - actualTime)/1000
     
-    if (seconds >= 3 ){
- 
-        cloneObstacle(); 
+    if (seconds >= 2 ){
+        cloneObstacle();
         cloneEnemy();
         actualTime = now;
     }
@@ -118,67 +117,50 @@ function animate() {
     velocity.z = 0;
 
     player.bbox.setFromObject(player)
-
-    for(column_i of obstacles){
-        column_i.bbox.setFromObject(column_i)
-        column_i.position.x += 5;
-        if (column_i.position.x >= 400)
+    for(object of obstacles){
+        object.bbox.setFromObject(object)
+        object.position.x += 5;
+        if (object.position.x >= 390)
         {
-            scene.remove(column_i)
+            scene.remove(object)
             obstacles.shift()
         }
-
-        if (player.bbox.intersectsBox(column_i.bbox)){
+        if (player.bbox.intersectsBox(object.bbox)){
             health--;
             document.getElementById("health").innerHTML = "Health: "+ health;
         }
         
     }
-    if (bullets.length > 0){
-
-        for (bullet of bullets){
-
-            bullet.position.x -= 10;
-
-            if (bullet.position.x <= -100){
-                scene.remove(bullet)
-                bullet.inGame = false
+    if (shots.length > 0){
+        for (shot of shots){
+            shot.position.x -= 10;
+            if (shot.position.x <= -100){
+                scene.remove(shot)
+                shot.inGame = false
             }
-            else if (bullet.inGame != false) {
+            else if (shot.inGame != false) {
 
-                bullet.bbox.setFromObject(bullet)
+                shot.bbox.setFromObject(shot)
     
-                for (column_i of obstacles){
-                    column_i.bbox.setFromObject(column_i);
-                    if (bullet.bbox.intersectsBox(column_i.bbox) && column_i.type == "enemy"){
+                for (object of obstacles){
+                    object.bbox.setFromObject(object);
+                    if (shot.bbox.intersectsBox(object.bbox) && object.type == "enemy"){
                         score ++;
                         document.getElementById("score").innerHTML = "Total Kills: " + score;
-                        scene.remove(column_i)
-                        scene.remove(bullet)
-      
+                        scene.remove(object)
+                        scene.remove(shot)
                     }
-        
                 }
             }
-               
         }
     }  
 }
 
-function ResetGame(){
-
-    for(bullet of bullets){
-        scene.remove(bullet)
-    }
-    for (column_i of obstacles){
-        scene.remove(bullets)
-    }
-
+function StartGame()
+{
     health = 100;
-
-    bullets = [];
+    shots = [];
     obstacles = [];
-
     isGameRunning = false;
 
 }
@@ -190,7 +172,6 @@ function run()
         renderer.render( scene, camera );
     
         if (isGameRunning){
-            // Render the scene
             NowTime = Date.now();
             elapsedTime = (NowTime - startedTime)/1000
 
@@ -198,13 +179,11 @@ function run()
 
             if (elapsedTime >= 60 || health <= 0) {
 
-                ResetGame();
+                StartGame();
                 document.getElementById("startButton").innerHTML.disabled = true;
                            
             }
-            // Update the animations
             KF.update();
-        
             floorAnimator.start();
             animate();
         }
@@ -379,7 +358,7 @@ function shoot(){
     cube.bbox = new THREE.Box3()
     cube.bbox.setFromObject(cube)
 
-    bullets.push(cube);
+    shots.push(cube);
     scene.add(cube)
 
 }
